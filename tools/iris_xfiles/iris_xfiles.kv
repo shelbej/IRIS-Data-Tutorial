@@ -1,0 +1,301 @@
+#:kivy 1.10.0
+#:import ListAdapter kivy.adapters.listadapter.ListAdapter
+#:import ListItemButton kivy.uix.listview.ListItemButton
+<ListItemButton>:
+    selected_color: 0, 0, 1, 1
+    deselected_color: 0, 0, 0, 1
+    font_size: 12
+
+iris_xfiles:
+
+<iris_xfiles>:
+    orientation: 'vertical'
+    BoxLayout:
+        id: box
+        orientation: 'vertical'
+        size_hint_y: 10
+        padding: 2
+
+        GridLayout:
+            id: about
+            orientation: 'horizontal'
+            cols: 2
+            size_hint_y: None
+            height: '60dp'
+            padding: 1
+
+            Image:
+                id: logo
+                source: '/sanhome/shelbe/IRIS/tools/iris_xfiles/content/iris_logo.png'
+                size_hint_x: .2
+            Label:
+                id: spaceholder
+                size_hint_x: .8
+
+        BoxLayout:
+            id: search_dates
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '40dp'
+            padding:5
+            Label:
+                text: 'Start Date: '
+                size_hint_x: .3
+            TextInput:
+                id: tstart
+                size_hint_x: .7
+                text: root.load_attribute('tstart')
+                on_text_validate: root.set_attribute('tstart', tstart.text)
+                font_size: 12
+                focus: True
+                multiline: False
+            Label:
+                text: 'End Date: '
+                size_hint_x: .3
+            TextInput:
+                id: tend
+                size_hint_x: .7
+                text: root.load_attribute('tend')
+                on_text_validate: root.set_attribute('tend', tend.text)
+                font_size: 12
+                focus: True
+                multiline: False
+
+        BoxLayout:
+            id: about
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: '80dp'
+            padding: 5
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: .3
+                BoxLayout:
+                    Label:
+                        text: 'Obs IDs: '
+                        size_hint_x: .3
+                    TextInput:
+                        id: obsid
+                        size_hint_x: .4
+                        text: root.load_attribute('obsid')
+                        on_text_validate: root.set_attribute('obsid', obsid.text)
+                        font_size: 12
+                        focus: True
+                        multiline: False
+                BoxLayout:
+                    Label:
+                        text: 'Filters: '
+                        size_hint_x: .3
+                    TextInput:
+                        id: filters
+                        size_hint_x: .4
+                        text: root.load_attribute('filters')
+                        on_text_validate: root.set_attribute('filters', filters.text)
+
+                        font_size: 12
+                        multiline: False
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: .7
+                BoxLayout:
+                    Label:
+                        text: ''
+                        size_hint_x: 1
+                BoxLayout:
+                    Label:
+                        text: 'Search Directory: '
+                        size_hint_x: .3
+                    TextInput:
+                        id: sdir_input
+                        size_hint_x: .5
+                        text: root.load_attribute('sdir')
+                        on_text_validate: root.set_attribute('sdir', sdir_input.text)
+                        font_size: 12
+                        focus: True
+                        multiline: False
+                    Spinner:
+                        id: sel_spattern
+                        text_autoupdate: True
+                        values: root.spatterns['name']
+                        size_hint_x: .2
+                        on_text: root.show_selected_value(sel_spattern.text)
+        Button:
+            id: startsearch
+            text: 'Start Search'
+            on_press: root.startsearch()
+            background_color: (.5,.4,.5, 0)
+            size_hint_y: None
+            height: '30dp'
+            canvas.before:
+                Color:
+                    rgb: .5,.4,.5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+        FileChooserListView:
+            id: list
+            path: root.load_attribute('sdir')
+            multiselect: False
+            size_hint_y: 1
+            height: '100dp'
+            on_submit: root.select(*args)
+        Label:
+            size_hint_y: None
+            height: '25dp'
+            text: 'Start Obs'.ljust(35)+'Obs ID'.ljust(15)+'Obs Description'.ljust(85)+'XCen'.ljust(9)+'YCen'.ljust(9)+'Sat Rot'
+            halign: 'left'
+            background_color: (.5,.4,.5, 1)
+            canvas.before:
+                Color:
+                    rgb: .5,.4,.5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        ListView:
+            id: results_list
+            size_hint_y: 1.5
+            adapter:
+                ListAdapter(
+                data=[],
+                selection_mode='multiple',
+                allow_empty_selection=False,
+                cls=ListItemButton)
+
+    BoxLayout:
+        id: box
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: '30dp'
+        Button:
+            id: show
+            text: 'Confirm Selection'
+
+            canvas.before:
+                Color:
+                    rgb: .5,.5,.4
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            on_press: root.show()
+
+        Button:
+            id: btnExit
+            text: 'Exit'
+            on_press: app.stop()
+
+        Button:
+            id: btnEdit
+            text: 'Edit'
+            on_press: root.edit_spattern()
+
+
+<edit_spattern_menu>:
+    name_txtin: name
+    path_txtin: path
+    usetree_check: usetree
+    subdir_check: subdir
+    default_check: default
+    spatterns_list: spatterns_listview
+    close_button: close
+
+    id: editspatterns
+    orientation: 'horizontal'
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: .5
+        ListView:
+            id: spatterns_listview
+            adapter:
+                ListAdapter(
+                data=root.spatterns['name'],
+                selection_mode='single',
+                allow_empty_selection=False,
+                cls=ListItemButton)
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Button:
+                text: '+'
+                size_hint_x: 15
+                on_press: root.add_spattern()
+            Button:
+                text: '-'
+                size_hint_x: 15
+                on_press: root.delete_spattern()
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: 1
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Label:
+                text: 'Name: '
+                size_hint_x: .3
+            TextInput:
+                id: name
+                size_hint_x: .7
+                text: ''
+                focus: True
+                multiline: False
+                on_text_validate: root.set_attribute('name',name.text)
+
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+
+            Label:
+                text: 'Path: '
+                size_hint_x: .3
+            TextInput:
+                id: path
+                size_hint_x: .7
+                text: ''
+                focus: True
+                multiline: False
+                on_text_validate: root.set_attribute('path',path.text)
+
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Label:
+                text: 'Use Data-Tree-Structure'
+                size_hint_x: .25
+            CheckBox:
+                id: usetree
+                on_press: root.set_attribute('usetree',usetree.active)
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Label:
+                text: 'Search Sub-Directories'
+                size_hint_x: .25
+            CheckBox:
+                id: subdir
+                active: True
+                on_press: root.set_attribute('searchsubdir',subdir.active)
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Label:
+                text: 'Set as Default'
+                size_hint_x: .25
+            CheckBox:
+                id: default
+                active: False
+                on_press: root.set_attribute('default',default.active)
+
+        BoxLayout:
+            size_hint_y: None
+            height: '40dp'
+            Button:
+                text: 'OK'
+                size_hint_x: 15
+                on_press: root.save_spattern()
+            Button:
+                id: close
+                text: 'Close'
+                size_hint_x: 15
+
+
